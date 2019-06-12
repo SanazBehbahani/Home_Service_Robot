@@ -8,7 +8,7 @@ typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseCl
 
 // Define pick up and drop off coordinates
 double pick[2] = {-2.0, 0.5};
-double place[2] = {1.0, -2.0};
+double place[2] = {2.0, 0.0};
 
 int main (int argc, char** argv){
     // Initialize the simple_navigation_goals node
@@ -47,10 +47,10 @@ int main (int argc, char** argv){
     // Check if the robot reached its goal
     if (ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED){
 	ROS_INFO("Horray, the robot picked up the object.");
-	std_msgs::UInt8 msg1;
-	msg1.data = 0;
-	ROS_INFO("The message is %d", msg1.data);
-	pos_pub.publish(msg1);
+	//std_msgs::UInt8 msg1;
+	//msg1.data = 0;
+	//ROS_INFO("The message is %d", msg1.data);
+	//pos_pub.publish(msg1);
     }
     else
 	ROS_INFO("The robot failed to pick up the object.");
@@ -66,7 +66,7 @@ int main (int argc, char** argv){
     // Define a position and orientation for the robot to reach
     place_goal.target_pose.pose.position.x = place[0];
     place_goal.target_pose.pose.position.y = place[1];
-    place_goal.target_pose.pose.orientation.w = 0;
+    place_goal.target_pose.pose.orientation.w = 1.2;
 
     // Send the goal position and orientation for the robot to reach
     ROS_INFO("Sending place goal");
@@ -78,14 +78,15 @@ int main (int argc, char** argv){
     // Check if the robot reached its goal
     if (ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED){
 	ROS_INFO("Horray, the robot placed the object.");
-	std_msgs::UInt8 msg2;
-	msg2.data = 0;
-	ROS_INFO("The message is %d", msg2.data);
-	pos_pub.publish(msg2);
+	//std_msgs::UInt8 msg2;
+	//msg2.data = 0;
+	//ROS_INFO("The message is %d", msg2.data);
+	//pos_pub.publish(msg2);
     }
     else
 	ROS_INFO("The robot failed to place the object.");
-
+    
+    sleep (5);
 
     return 0;
 }
