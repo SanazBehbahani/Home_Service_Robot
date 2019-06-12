@@ -7,7 +7,7 @@
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
 // Define pick up and drop off coordinates
-double pick[2] = {-2.0, -1.0}
+double pick[2] = {-2.0, -1.0};
 double place[2] = {2.0, 2.0};
 
 int main (int argc, char** argv){
@@ -19,7 +19,7 @@ int main (int argc, char** argv){
     MoveBaseClient ac("move_base", true);
 
     // Position publisher
-    ros::Publisher pos_pub = n.advertise<geometry_msgs::UInt8>("/robot_position", 1);
+    ros::Publisher pos_pub = n.advertise<std_msgs::UInt8>("/robot_position", 1);
 
     // Wait 5 sec for move_base action server to come up
     while (!ac.waitForServer(ros::Duration(5.0))){
