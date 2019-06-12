@@ -7,7 +7,7 @@
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
 // Define pick up and drop off coordinates
-double pick[2] = {-2.0, -0.0};
+double pick[2] = {-2.0, 0.5};
 double place[2] = {1.0, -2.0};
 
 int main (int argc, char** argv){
