@@ -1,22 +1,36 @@
 #include <ros/ros.h>
 #include <visualization_msgs/Marker.h>
-#include <std_msgs/UInt8.h>
+#include <nav_msgs/Odometry.h>
 
+using namespace std;
 
 // Define pick up and drop off coordinates
 double pick[2] = {-2.0, 0.5};
 double place[2] = {2.0, 0.0};
 
+double robot_x, robot_y, marker_x, marker_y;
+double position_error = 5;
+
+nav_msgs::Odometry pose_msg;
 visualization_msgs::Marker marker;
+
 uint8_t state = 2;
 
-void robot_status (const std_msgs::UInt8::ConstPtr& msg)
+void odom_callback(const nav_msgs::Odometry::ConstPtr& odom_msg)
 {
-    state = msg->data;
-    return;
+    pose_msg = *odom_msg;
+    robot_x = pose_msg.pose.pose.position.x;
+    robot_y = pose_msg.pose.pose.position.y;
 }
 
-void add_marker(double xpos, double ypos, bool ToDo)
+void position_error_check()
+{
+    position_error = pow (robot_x - marker_x, 2) + pow (robot_y - marker_y, 2);
+    ROS_INFO("The position error is, %5.2f", position_error);
+    ROS_INFO("The robot position is, %5.2f, %5.2f", robot_x, robot_y);
+}
+
+void add_marker(double xMarker, double yMarker, bool ToDo)
 {
     // Set the frame ID and timestamp
     marker.header.frame_id = "/map";
@@ -40,8 +54,8 @@ void add_marker(double xpos, double ypos, bool ToDo)
 	marker.action = visualization_msgs::Marker::DELETE;
     }
     // Set the pose of the marker. This is a full 6 DOF pose relative to the frame/time specified in the header. 
-    marker.pose.position.x = xpos;
-    marker.pose.position.y = ypos;
+    marker.pose.position.x = xMarker;
+    marker.pose.position.y = yMarker;
     marker.pose.position.z = 0;
     marker.pose.orientation.x = 0.0;
     marker.pose.orientation.y = 0.0;
@@ -61,6 +75,8 @@ void add_marker(double xpos, double ypos, bool ToDo)
 
     marker.lifetime = ros::Duration();
 
+    marker_x = marker.pose.position.x;
+    marker_y = marker.pose.position.y;
 }
 
 
@@ -69,15 +85,18 @@ int main( int argc, char** argv )
     ros::init (argc, argv, "add_markers");
     ros::NodeHandle n;
     ros::Rate r(1);
-    bool initialPosition = false;
-    bool finalPosition = false; 
+    bool endMarker = false;
+    bool initialMarker = true;
+    bool pickReached = false;
+    bool placeReached = false;
+ 
+    ros::Subscriber odom_subscriber;
+    odom_subscriber = n.subscribe("/odom", 10, odom_callback);
     ros::Publisher marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
-    // Set our initial shape type to be a cube
-    uint32_t shape = visualization_msgs::Marker::CUBE;
     
     while (ros::ok())
     {
-	if(!initialPosition)
+	if(!pickReached)
 	{
 	    ROS_INFO_ONCE ("Adding object to be picked.");
 	    add_marker(pick[0], pick[1], true);
@@ -93,16 +112,27 @@ int main( int argc, char** argv )
 	    marker_pub.publish(marker);
 	}
 
-	if(state == 0 && !initialPosition)
+	position_error_check();
+
+	if (position_error < 0.1 && !pickReached)
 	{
-	    initialPosition = true;
-	    add_marker(pick[0], pick[1], false);
-	    marker_pub.publish(marker);
+	    pickReached = true;
+	    std::cout << "Reached the pick position" << endl;
+	    std::cout << "Wait for 5 seconds" << endl;
+	    std::cout << "Picking up the object" << endl;
 	    ros::Duration(5.0).sleep();
+	    std::cout << "Go to drop off position" << endl;
+	    // Reset position error
+	    position_error = 5.0;
 	}
 
-	if(initialPosition && !finalPosition)
+	if(pickReached && !placeReached)
 	{
+	    add_marker (pick[0], pick[1], false);
+	    marker_pub.publish(marker);
+
+	    add_marker (place[0], place[1], true);
+
 	    while (marker_pub.getNumSubscribers() < 1)
 	    {
 		if (!ros::ok())
@@ -112,17 +142,22 @@ int main( int argc, char** argv )
 	   	ROS_WARN_ONCE("Please create a subscriber to the marker.");
 		sleep(1);
 	    }
+	    marker_pub.publish(marker);
 	}
 
-	if(state == 1 && !finalPosition)
+	if (position_error < 0.1 && placeReached)
 	{
-	    add_marker(place[0], place[1], true);
-	    marker_pub.publish(marker);
+	    pickReached = true;
+	    std::cout << "Reached the place position" << endl;
+	    std::cout << "Wait for 5 seconds" << endl;
+	    std::cout << "Placing the object" << endl;
 	    ros::Duration(5.0).sleep();
-	    return 0;
+	    std::cout << "Task completed!!" << endl;
 	}
 
 	ros::spinOnce();
+        ros::Duration(0.5).sleep();
     }
+    return 0;
 }
 
