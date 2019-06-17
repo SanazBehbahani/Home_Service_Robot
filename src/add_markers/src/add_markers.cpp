@@ -1,5 +1,5 @@
 #include <ros/ros.h>
-#include <visualization_msgs/marker.h>
+#include <visualization_msgs/Marker.h>
 #include <std_msgs/UInt8.h>
 
 
@@ -10,13 +10,13 @@ double place[2] = {2.0, 0.0};
 visualization_msgs::Marker marker;
 uint8_t state = 2;
 
-void robot_status (const std_msgs::UInt8::Constptr& msg)
+void robot_status (const std_msgs::UInt8::ConstPtr& msg)
 {
     state = msg->data;
     return;
 }
 
-vois add_marker(double xpos, double ypos, bool ToDo)
+void add_marker(double xpos, double ypos, bool ToDo)
 {
     // Set the frame ID and timestamp
     marker.header.frame_id = "/map";
