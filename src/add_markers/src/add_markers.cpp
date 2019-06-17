@@ -9,12 +9,10 @@ double pick[2] = {-2.0, 0.5};
 double place[2] = {2.0, 0.0};
 
 double robot_x, robot_y, marker_x, marker_y;
-double position_error = 5;
+double position_error = 10.0;
 
 nav_msgs::Odometry pose_msg;
 visualization_msgs::Marker marker;
-
-uint8_t state = 2;
 
 void odom_callback(const nav_msgs::Odometry::ConstPtr& odom_msg)
 {
@@ -25,7 +23,7 @@ void odom_callback(const nav_msgs::Odometry::ConstPtr& odom_msg)
 
 void position_error_check()
 {
-    position_error = pow (robot_x - marker_x, 2) + pow (robot_y - marker_y, 2);
+    position_error = pow(robot_x - marker_x, 2) + pow(robot_y - marker_y, 2);
     ROS_INFO("The position error is, %5.2f", position_error);
     ROS_INFO("The robot position is, %5.2f, %5.2f", robot_x, robot_y);
 }
@@ -63,9 +61,9 @@ void add_marker(double xMarker, double yMarker, bool ToDo)
     marker.pose.orientation.w = 1.0;
 
     // Set the scale of the marker -- 1x1x1 here means 1 meter on a side
-    marker.scale.x = 1.0;
-    marker.scale.y = 1.0;
-    marker.scale.z = 1.0;
+    marker.scale.x = 0.1;
+    marker.scale.y = 0.1;
+    marker.scale.z = 0.1;
 
     // Set the color -- be sure to set alpha to something non-zero!
     marker.color.r = 0.0f;
@@ -117,13 +115,13 @@ int main( int argc, char** argv )
 	if (position_error < 0.1 && !pickReached)
 	{
 	    pickReached = true;
-	    std::cout << "Reached the pick position" << endl;
-	    std::cout << "Wait for 5 seconds" << endl;
-	    std::cout << "Picking up the object" << endl;
+	    std::cout << "Reached the pick position" << std::endl;
+	    std::cout << "Wait for 5 seconds" << std::endl;
+	    std::cout << "Picking up the object" << std::endl;
 	    ros::Duration(5.0).sleep();
-	    std::cout << "Go to drop off position" << endl;
+	    std::cout << "Go to drop off position" << std::endl;
 	    // Reset position error
-	    position_error = 5.0;
+	    position_error = 10.0;
 	}
 
 	if(pickReached && !placeReached)
@@ -145,14 +143,14 @@ int main( int argc, char** argv )
 	    marker_pub.publish(marker);
 	}
 
-	if (position_error < 0.1 && placeReached)
+	if (position_error < 0.1 && pickReached)
 	{
-	    pickReached = true;
-	    std::cout << "Reached the place position" << endl;
-	    std::cout << "Wait for 5 seconds" << endl;
-	    std::cout << "Placing the object" << endl;
+	    //placeReached = true;
+	    std::cout << "Reached the place position" << std::endl;
+	    std::cout << "Wait for 5 seconds" << std::endl;
+	    std::cout << "Placing the object" << std::endl;
 	    ros::Duration(5.0).sleep();
-	    std::cout << "Task completed!!" << endl;
+	    std::cout << "Task completed!!" << std::endl;
 	}
 
 	ros::spinOnce();
